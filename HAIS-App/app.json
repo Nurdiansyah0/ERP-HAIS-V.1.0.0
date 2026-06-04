@@ -23,6 +23,14 @@
     },
     "web": {
       "favicon": "./assets/icon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Izinkan aplikasi HAIS mengakses kamera untuk memindai QR Code verifikasi dokumen."
+        }
+      ]
+    ]
   }
 }

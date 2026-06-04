@@ -6,6 +6,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '../state/useAuthStore';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { QRScannerScreen } from './QRScannerScreen';
 
 const { width, height } = Dimensions.get('window');
 
@@ -23,6 +24,7 @@ export const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
 
   const { login, isLoading, error } = useAuthStore();
 
@@ -30,6 +32,10 @@ export const LoginScreen = () => {
     // In design, password is used instead of OTP
     login(username, password);
   };
+
+  if (showQRScanner) {
+    return <QRScannerScreen onBack={() => setShowQRScanner(false)} />;
+  }
 
   return (
     <KeyboardAvoidingView
@@ -159,6 +165,17 @@ export const LoginScreen = () => {
             <Ionicons name="finger-print-outline" size={24} color={COLORS.primary} />
             <Text style={styles.biometricButtonText}>Login dengan Biometrik</Text>
           </TouchableOpacity>
+
+          <View style={{ marginTop: 24 }} />
+
+          {/* Document Verification Button */}
+          <TouchableOpacity 
+            style={styles.verificationButton}
+            onPress={() => setShowQRScanner(true)}
+          >
+            <MaterialCommunityIcons name="qrcode-scan" size={24} color={COLORS.secondary} />
+            <Text style={styles.verificationButtonText}>Verifikasi Dokumen (Scan QR)</Text>
+          </TouchableOpacity>
         </View>
 
       </ScrollView>
@@ -197,7 +214,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     alignItems: 'center',
     paddingTop: height * 0.08,
-    paddingBottom: 24, // Space before the form
+    paddingBottom: 48, // Space before the form (increased to lower the inputs)
   },
   formContainer: {
     paddingHorizontal: 28,
@@ -296,7 +313,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 16,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -310,7 +327,7 @@ const styles = StyleSheet.create({
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 16,
   },
   dividerLine: {
     flex: 1,
@@ -334,6 +351,22 @@ const styles = StyleSheet.create({
   },
   biometricButtonText: {
     color: COLORS.textMain,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 12,
+  },
+  verificationButton: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(242, 179, 51, 0.1)',
+    borderWidth: 1,
+    borderColor: COLORS.secondary,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  verificationButtonText: {
+    color: COLORS.secondary,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 12,
