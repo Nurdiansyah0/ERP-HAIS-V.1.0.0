@@ -1,0 +1,353 @@
+import React, { useState } from 'react';
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions, ScrollView, Image
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useAuthStore } from '../state/useAuthStore';
+import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+
+const { width, height } = Dimensions.get('window');
+
+const COLORS = {
+  primary: '#C8102E', // Red
+  secondary: '#F2B333', // Yellow
+  background: '#1F1F1F', // Dark gray
+  inputBg: '#2C2C2C',
+  textMain: '#FFFFFF',
+  textSub: '#888888',
+};
+
+export const LoginScreen = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  const { login, isLoading, error } = useAuthStore();
+
+  const handleLogin = () => {
+    // In design, password is used instead of OTP
+    login(username, password);
+  };
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      {/* Background Image and Gradient */}
+      <Image
+        source={require('../../../assets/login-bg.webp')}
+        style={styles.absoluteBackgroundImage}
+        resizeMode="cover"
+      />
+      <LinearGradient
+        colors={['rgba(200, 16, 46, 0.5)', 'rgba(200, 16, 46, 0.2)', 'rgba(31, 31, 31, 1)']}
+        locations={[0, 0.75, 1]}
+        style={styles.absoluteGradient}
+      />
+
+      <ScrollView
+        style={{ flex: 1, zIndex: 10 }}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
+
+        {/* Header / Logo Section */}
+        <View style={styles.headerContainer}>
+          <Image
+            source={require('../../../assets/compact-logo.png')}
+            style={{ width: 140, height: 140 }}
+            resizeMode="contain"
+          />
+          <Text style={styles.haisTitle}>HAIS</Text>
+          <Text style={styles.arffSubtitle}>HANG NADIM ARFF</Text>
+          <Text style={styles.integratedText}>INTEGRATED SYSTEM</Text>
+          <View style={styles.integratedUnderline} />
+          <Text style={styles.taglineText}>COMMAND • MONITOR • RESPOND</Text>
+        </View>
+
+        {/* Form Section */}
+        <View style={styles.formContainer}>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+          {/* Input Username */}
+          <View style={styles.inputContainer}>
+            <View style={styles.iconContainer}>
+              <Feather name="user" size={24} color={COLORS.primary} />
+            </View>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>Username</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Masukkan username"
+                placeholderTextColor={COLORS.textSub}
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+              />
+            </View>
+          </View>
+
+          {/* Input Password */}
+          <View style={styles.inputContainer}>
+            <View style={styles.iconContainer}>
+              <Feather name="lock" size={24} color={COLORS.primary} />
+            </View>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Masukkan password"
+                placeholderTextColor={COLORS.textSub}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+            </View>
+            <TouchableOpacity
+              style={styles.eyeIcon}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Feather name={showPassword ? "eye" : "eye-off"} size={20} color={COLORS.textSub} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Remember Me & Forgot Password */}
+          <View style={styles.optionsRow}>
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() => setRememberMe(!rememberMe)}
+            >
+              <MaterialCommunityIcons
+                name={rememberMe ? "checkbox-marked" : "checkbox-blank-outline"}
+                size={22}
+                color={COLORS.textMain}
+              />
+              <Text style={styles.checkboxText}>Ingat saya</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity>
+              <Text style={styles.forgotPasswordText}>Lupa password?</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Main Login Button */}
+          <TouchableOpacity
+            style={[styles.button, isLoading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>MASUK</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>atau masuk dengan</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Biometric Button */}
+          <TouchableOpacity style={styles.biometricButton}>
+            <Ionicons name="finger-print-outline" size={24} color={COLORS.primary} />
+            <Text style={styles.biometricButtonText}>Login dengan Biometrik</Text>
+          </TouchableOpacity>
+        </View>
+
+      </ScrollView>
+
+      {/* Footer */}
+      <Text style={styles.footerText}>© 2026 Hang Nadim ARFF. All rights reserved.</Text>
+    </KeyboardAvoidingView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingBottom: 20,
+  },
+  absoluteBackgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: height * 0.42, // Image strictly stops just below the logo/tagline text
+    opacity: 0.8,
+  },
+  absoluteGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: height * 0.60, // Raised to blend exactly between Username and Password inputs
+  },
+  headerContainer: {
+    alignItems: 'center',
+    paddingTop: height * 0.08,
+    paddingBottom: 24, // Space before the form
+  },
+  formContainer: {
+    paddingHorizontal: 28,
+  },
+  haisTitle: {
+    fontSize: 46,
+    fontWeight: '900',
+    color: COLORS.textMain,
+    marginTop: -18, // Pulled much closer to the logo
+    letterSpacing: 2,
+  },
+  arffSubtitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.primary,
+    letterSpacing: 1.5,
+    marginTop: 2,
+  },
+  integratedText: {
+    fontSize: 14,
+    fontWeight: '500', // Made thinner
+    color: COLORS.textMain,
+    letterSpacing: 2,
+    marginTop: 2,
+  },
+  integratedUnderline: {
+    width: 180, // Extended to align perfectly with the text length
+    height: 1, // Made thinner (less "bold")
+    backgroundColor: COLORS.secondary,
+    marginTop: 6,
+    marginBottom: 12,
+  },
+  taglineText: {
+    fontSize: 10,
+    color: COLORS.textMain,
+    letterSpacing: 1.5,
+    fontWeight: '600',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.inputBg,
+    borderRadius: 12,
+    marginBottom: 16,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#3A3A3A',
+  },
+  iconContainer: {
+    marginRight: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inputWrapper: {
+    flex: 1,
+  },
+  inputLabel: {
+    color: COLORS.textMain,
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  input: {
+    color: COLORS.textMain,
+    fontSize: 15,
+    padding: 0,
+    margin: 0,
+  },
+  eyeIcon: {
+    padding: 4,
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 32,
+    marginTop: 4,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkboxText: {
+    color: COLORS.textMain,
+    marginLeft: 8,
+    fontSize: 14,
+  },
+  forgotPasswordText: {
+    color: COLORS.primary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  button: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: COLORS.textMain,
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#3A3A3A',
+  },
+  dividerText: {
+    color: COLORS.textSub,
+    paddingHorizontal: 16,
+    fontSize: 14,
+  },
+  biometricButton: {
+    flexDirection: 'row',
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#3A3A3A',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  biometricButtonText: {
+    color: COLORS.textMain,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 12,
+  },
+  errorText: {
+    color: COLORS.primary,
+    textAlign: 'center',
+    marginBottom: 16,
+    fontWeight: '500',
+  },
+  footerText: {
+    color: COLORS.textSub,
+    textAlign: 'center',
+    fontSize: 12,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
+  }
+});
