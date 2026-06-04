@@ -30,7 +30,14 @@
         {
           "cameraPermission": "Izinkan aplikasi HAIS mengakses kamera untuk memindai QR Code verifikasi dokumen."
         }
-      ]
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Izinkan aplikasi HAIS menggunakan Face ID untuk login otomatis."
+        }
+      ],
+      "expo-secure-store"
     ]
   }
 }

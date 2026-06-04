@@ -9,7 +9,7 @@ interface AuthState {
   error: string | null;
   login: (username: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
-  checkSession: () => Promise<void>;
+  checkSession: () => Promise<boolean>;
 }
 
 // Dependensi Injeksi (DI) Manual
@@ -41,5 +41,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
     const user = await authRepository.getCurrentUser();
     set({ user, isLoading: false });
+    return user !== null;
   },
 }));

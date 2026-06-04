@@ -1,0 +1,29 @@
+=== DESAIN REFERENSI: PREMIUM NOTIFICATION POP-UP (CUSTOM MODAL) ===
+
+Tujuan: Menggantikan Alert bawaan sistem operasi (OS) yang kaku dengan Custom Modal yang elegan, modern, dan menyatu dengan tema HAIS ERP.
+
+1. WARNA & TEMA (COLOR PALETTE)
+   - Backdrop (Latar Belakang Blur): rgba(0, 0, 0, 0.7) - Hitam transparan agar fokus ke pop-up.
+   - Pop-up Background: #2C2C2C (Dark Gray solid) atau #1F1F1F dengan efek border tipis.
+   - Aksen Sukses (Success): #4CAF50 (Hijau) atau menggunakan #F2B333 (Kuning Emas khas HAIS).
+   - Aksen Gagal/Error: #C8102E (Merah khas HAIS).
+   - Teks Judul (Title): #FFFFFF (Putih), Bold, Font Size 18-20.
+   - Teks Pesan (Body): #CCCCCC (Abu-abu terang), Font Size 14-15, Line Height 22.
+
+2. BENTUK & LAYOUT (SHAPE)
+   - Border Radius: 16px (Sudut melengkung modern, tidak kaku).
+   - Padding: 24px (Ruang bernapas yang luas di dalam pop-up).
+   - Lebar Pop-up: 85% - 90% dari lebar layar.
+   - Posisi: Berada tepat di tengah layar (Center).
+   - Ikon: Harus selalu memiliki ikon besar di atas judul (misal: Check Circle untuk sukses, X Circle untuk error) berukuran 48-64px.
+
+3. TOMBOL (BUTTONS)
+   - Primary Button: Background #C8102E (Merah), Teks #FFFFFF, Border Radius 12px, Padding Vertical 14px.
+   - Secondary Button (Cancel): Background Transparan atau #3A3A3A, Teks #FFFFFF, Border Radius 12px.
+   - Font Tombol: Bold, Letter Spacing 1.
+
+4. ANIMASI (ANIMATIONS)
+   - Muncul (Fade In / Scale Up): Pop-up harus muncul dengan animasi transisi yang lembut (menggunakan Modal React Native dengan animationType="fade" atau "slide").
+
+PENGGUNAAN KATA: 
+Istilah yang tepat dalam React Native adalah "Custom Modal" atau "Dialog Box". Hindari menggunakan "Alert.alert()" bawaan jika membutuhkan UI yang premium.

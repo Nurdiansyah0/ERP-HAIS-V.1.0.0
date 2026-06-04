@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions, ScrollView, Image
+  ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions, ScrollView, Image, Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '../state/useAuthStore';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { QRScannerScreen } from './QRScannerScreen';
+import { ForgotPasswordScreen } from './ForgotPasswordScreen';
+import * as LocalAuthentication from 'expo-local-authentication';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,16 +28,89 @@ export const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const { login, isLoading, error } = useAuthStore();
+  const { login, checkSession, isLoading, error } = useAuthStore();
 
-  const handleLogin = () => {
+  useEffect(() => {
+    const loadSavedUsername = async () => {
+      try {
+        // Hanya simpan username untuk pre-fill kolom input. 
+        // Auto-login sekarang ditangani otomatis oleh refresh_token di AuthRepository.
+        const savedUsername = await AsyncStorage.getItem('saved_username');
+        if (savedUsername) {
+          setUsername(savedUsername);
+          setRememberMe(true);
+        }
+      } catch (e) {
+        console.error('Failed to load username', e);
+      }
+    };
+    loadSavedUsername();
+  }, []);
+
+  const handleLogin = async () => {
+    if (rememberMe) {
+      try {
+        await AsyncStorage.setItem('saved_username', username);
+      } catch (e) {
+        console.error('Failed to save username', e);
+      }
+    } else {
+      try {
+        await AsyncStorage.removeItem('saved_username');
+      } catch (e) {
+        console.error('Failed to clear username', e);
+      }
+    }
+
     // In design, password is used instead of OTP
     login(username, password);
   };
 
+  const handleBiometricLogin = async () => {
+    try {
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      if (!hasHardware) {
+        Alert.alert('Gagal', 'Perangkat Anda tidak memiliki sensor biometrik (Sidik Jari / Face ID).');
+        return;
+      }
+
+      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+      if (!isEnrolled) {
+        Alert.alert('Belum Terdaftar', 'Silakan daftarkan Sidik Jari atau Face ID di pengaturan perangkat Anda terlebih dahulu.');
+        return;
+      }
+
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Login ke HAIS',
+        fallbackLabel: 'Gunakan Password',
+        cancelLabel: 'Batal',
+      });
+
+      if (result.success) {
+        // Biometrik sukses secara hardware. 
+        // Lakukan login diam-diam (silent login) dengan refresh_token dari SecureStore
+        const success = await checkSession();
+        if (!success) {
+          Alert.alert(
+            'Otentikasi Diperlukan', 
+            'Sesi akses Anda telah berakhir atau kredensial perangkat belum terverifikasi. Silakan masuk secara manual menggunakan kata sandi untuk mengaktifkan kembali fitur otentikasi biometrik.'
+          );
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Terjadi kesalahan saat memproses biometrik.');
+    }
+  };
+
   if (showQRScanner) {
     return <QRScannerScreen onBack={() => setShowQRScanner(false)} />;
+  }
+
+  if (showForgotPassword) {
+    return <ForgotPasswordScreen onBack={() => setShowForgotPassword(false)} />;
   }
 
   return (
@@ -135,7 +211,7 @@ export const LoginScreen = () => {
               <Text style={styles.checkboxText}>Ingat saya</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowForgotPassword(true)}>
               <Text style={styles.forgotPasswordText}>Lupa password?</Text>
             </TouchableOpacity>
           </View>
@@ -161,7 +237,7 @@ export const LoginScreen = () => {
           </View>
 
           {/* Biometric Button */}
-          <TouchableOpacity style={styles.biometricButton}>
+          <TouchableOpacity style={styles.biometricButton} onPress={handleBiometricLogin}>
             <Ionicons name="finger-print-outline" size={24} color={COLORS.primary} />
             <Text style={styles.biometricButtonText}>Login dengan Biometrik</Text>
           </TouchableOpacity>
@@ -169,7 +245,7 @@ export const LoginScreen = () => {
           <View style={{ marginTop: 24 }} />
 
           {/* Document Verification Button */}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.verificationButton}
             onPress={() => setShowQRScanner(true)}
           >
@@ -194,7 +270,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingBottom: 20,
+    paddingBottom: 0,
   },
   absoluteBackgroundImage: {
     position: 'absolute',
@@ -213,8 +289,8 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     alignItems: 'center',
-    paddingTop: height * 0.08,
-    paddingBottom: 48, // Space before the form (increased to lower the inputs)
+    paddingTop: height * 0.15,
+    paddingBottom: 24,
   },
   formContainer: {
     paddingHorizontal: 28,
@@ -257,7 +333,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: COLORS.inputBg,
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: 12,
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -291,7 +367,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 20,
     marginTop: 4,
   },
   checkboxContainer: {
