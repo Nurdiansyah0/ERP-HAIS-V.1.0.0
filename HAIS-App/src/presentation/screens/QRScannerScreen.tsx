@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Feather } from '@expo/vector-icons';
+import { CustomModal } from '../components/CustomModal';
 
 export const QRScannerScreen = ({ onBack }: { onBack: () => void }) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [qrData, setQrData] = useState({ type: '', data: '' });
 
   useEffect(() => {
     (async () => {
@@ -37,20 +40,8 @@ export const QRScannerScreen = ({ onBack }: { onBack: () => void }) => {
 
   const handleBarcodeScanned = ({ type, data }: { type: string; data: string }) => {
     setScanned(true);
-    Alert.alert(
-      "QR Code Terdeteksi",
-      `Tipe: ${type}\nData: ${data}`,
-      [
-        {
-          text: "Pindai Lagi",
-          onPress: () => setScanned(false)
-        },
-        {
-          text: "Kembali",
-          onPress: onBack
-        }
-      ]
-    );
+    setQrData({ type, data });
+    setModalVisible(true);
   };
 
   return (
@@ -81,6 +72,23 @@ export const QRScannerScreen = ({ onBack }: { onBack: () => void }) => {
             </Text>
           </View>
         </View>
+        
+        <CustomModal
+          visible={modalVisible}
+          type="info"
+          title="QR Code Terdeteksi"
+          message={`Tipe: ${qrData.type}\nData: ${qrData.data}`}
+          primaryLabel="KEMBALI"
+          secondaryLabel="PINDAI LAGI"
+          onClose={() => {
+            setModalVisible(false);
+            onBack();
+          }}
+          onSecondaryAction={() => {
+            setModalVisible(false);
+            setScanned(false);
+          }}
+        />
     </View>
   );
 };

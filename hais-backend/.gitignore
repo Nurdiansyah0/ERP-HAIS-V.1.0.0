@@ -1,3 +1,5 @@
 /target/
 hais.db
 .env
+client_secret_*.json
+*.json

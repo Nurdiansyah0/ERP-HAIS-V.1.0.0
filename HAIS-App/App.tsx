@@ -1,24 +1,16 @@
 import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 import { LoginScreen } from './src/presentation/screens/LoginScreen';
+import { HomeScreen } from './src/presentation/screens/HomeScreen';
+import { InspectionFormScreen } from './src/presentation/screens/InspectionFormScreen';
+import { UsersScreen } from './src/presentation/screens/UsersScreen';
 import { useAuthStore } from './src/presentation/state/useAuthStore';
 
-// Dummy Home Screen untuk saat ini
-const HomeScreen = () => {
-  const { user, logout } = useAuthStore();
-  
-  return (
-    <View style={styles.container}>
-      <Text style={styles.welcomeText}>Selamat datang, {user?.name}</Text>
-      <Text style={styles.roleText}>Role: {user?.role}</Text>
-      
-      <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
-  );
-};
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   const { user, checkSession, isLoading } = useAuthStore();
@@ -36,10 +28,20 @@ export default function App() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0f172a' }}>
+    <NavigationContainer>
       <StatusBar style="light" />
-      {user ? <HomeScreen /> : <LoginScreen />}
-    </View>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!user ? (
+          <Stack.Screen name="Login" component={LoginScreen} />
+        ) : (
+          <>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="InspectionForm" component={InspectionFormScreen} />
+            <Stack.Screen name="Users" component={UsersScreen} />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -49,27 +51,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#0f172a',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  welcomeText: {
-    fontSize: 24,
-    color: '#f8fafc',
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  roleText: {
-    fontSize: 16,
-    color: '#94a3b8',
-    marginBottom: 32,
-    textTransform: 'uppercase',
-  },
-  logoutButton: {
-    backgroundColor: '#ef4444',
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  logoutText: {
-    color: '#fff',
-    fontWeight: 'bold',
   }
 });

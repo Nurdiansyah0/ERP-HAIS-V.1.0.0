@@ -4,8 +4,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 
-// URL API Backend mengarah ke IP lokal komputer Anda
-const API_BASE_URL = 'http://192.168.1.7:8080/v1';
+// URL API Backend mengarah ke IP host (10.0.2.2 untuk Android Emulator)
+const API_BASE_URL = 'http://10.0.2.2:8080/v1';
 const CURRENT_USER_KEY = '@hais_current_user';
 const REFRESH_TOKEN_KEY = 'hais_refresh_token';
 
@@ -16,10 +16,10 @@ export class AuthRepositoryImpl implements AuthRepository {
       const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         username: username,
         password: otp, // Password dari LoginScreen
-      });
+      }, { timeout: 5000 });
 
       // 2. Backend Rust memvalidasi dan mengirimkan access_token, refresh_token, serta data user
-      const { access_token, refresh_token, user: userData } = response.data;
+      const { access_token, refresh_token, user: userData } = response.data.data;
       
       const user: User = {
         id: userData.id,
@@ -64,9 +64,9 @@ export class AuthRepositoryImpl implements AuthRepository {
         try {
           const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
             refresh_token: refreshToken
-          });
+          }, { timeout: 5000 });
           
-          const newAccessToken = response.data.access_token;
+          const newAccessToken = response.data.data.access_token;
           await AsyncStorage.setItem('@hais_jwt_token', newAccessToken);
           
           // Ambil kembali data profile user dari storage lokal

@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions, ScrollView, Image, Alert
+  ActivityIndicator, KeyboardAvoidingView, Platform, Dimensions, ScrollView, Image, Alert, Animated
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '../state/useAuthStore';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { QRScannerScreen } from './QRScannerScreen';
 import { ForgotPasswordScreen } from './ForgotPasswordScreen';
+import { CustomModal } from '../components/CustomModal';
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -29,8 +30,23 @@ export const LoginScreen = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalConfig, setModalConfig] = useState({ title: '', message: '', type: 'error' as 'error' | 'info' | 'success' });
 
   const { login, checkSession, isLoading, error } = useAuthStore();
+  
+  const shakeAnimation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (error) {
+      Animated.sequence([
+        Animated.timing(shakeAnimation, { toValue: 10, duration: 50, useNativeDriver: true }),
+        Animated.timing(shakeAnimation, { toValue: -10, duration: 50, useNativeDriver: true }),
+        Animated.timing(shakeAnimation, { toValue: 10, duration: 50, useNativeDriver: true }),
+        Animated.timing(shakeAnimation, { toValue: 0, duration: 50, useNativeDriver: true })
+      ]).start();
+    }
+  }, [error]);
 
   useEffect(() => {
     const loadSavedUsername = async () => {
@@ -72,13 +88,15 @@ export const LoginScreen = () => {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       if (!hasHardware) {
-        Alert.alert('Gagal', 'Perangkat Anda tidak memiliki sensor biometrik (Sidik Jari / Face ID).');
+        setModalConfig({ title: 'Gagal', message: 'Perangkat Anda tidak memiliki sensor biometrik (Sidik Jari / Face ID).', type: 'error' });
+        setModalVisible(true);
         return;
       }
 
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
       if (!isEnrolled) {
-        Alert.alert('Belum Terdaftar', 'Silakan daftarkan Sidik Jari atau Face ID di pengaturan perangkat Anda terlebih dahulu.');
+        setModalConfig({ title: 'Belum Terdaftar', message: 'Silakan daftarkan Sidik Jari atau Face ID di pengaturan perangkat Anda terlebih dahulu.', type: 'info' });
+        setModalVisible(true);
         return;
       }
 
@@ -93,15 +111,18 @@ export const LoginScreen = () => {
         // Lakukan login diam-diam (silent login) dengan refresh_token dari SecureStore
         const success = await checkSession();
         if (!success) {
-          Alert.alert(
-            'Otentikasi Diperlukan', 
-            'Sesi akses Anda telah berakhir atau kredensial perangkat belum terverifikasi. Silakan masuk secara manual menggunakan kata sandi untuk mengaktifkan kembali fitur otentikasi biometrik.'
-          );
+          setModalConfig({
+            title: 'Otentikasi Diperlukan',
+            message: 'Sesi akses Anda telah berakhir atau kredensial perangkat belum terverifikasi. Silakan masuk secara manual menggunakan kata sandi untuk mengaktifkan kembali fitur otentikasi biometrik.',
+            type: 'info'
+          });
+          setModalVisible(true);
         }
       }
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Terjadi kesalahan saat memproses biometrik.');
+      setModalConfig({ title: 'Error', message: 'Terjadi kesalahan saat memproses biometrik.', type: 'error' });
+      setModalVisible(true);
     }
   };
 
@@ -152,7 +173,7 @@ export const LoginScreen = () => {
         </View>
 
         {/* Form Section */}
-        <View style={styles.formContainer}>
+        <Animated.View style={[styles.formContainer, { transform: [{ translateX: shakeAnimation }] }]}>
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
           {/* Input Username */}
@@ -252,12 +273,20 @@ export const LoginScreen = () => {
             <MaterialCommunityIcons name="qrcode-scan" size={24} color={COLORS.secondary} />
             <Text style={styles.verificationButtonText}>Verifikasi Dokumen (Scan QR)</Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
 
       </ScrollView>
 
       {/* Footer */}
       <Text style={styles.footerText}>© 2026 Hang Nadim ARFF. All rights reserved.</Text>
+
+      <CustomModal 
+        visible={modalVisible}
+        type={modalConfig.type}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        onClose={() => setModalVisible(false)}
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -448,7 +477,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   errorText: {
-    color: COLORS.primary,
+    color: COLORS.secondary,
     textAlign: 'center',
     marginBottom: 16,
     fontWeight: '500',
