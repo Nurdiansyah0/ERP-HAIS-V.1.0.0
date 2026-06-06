@@ -1,0 +1,3 @@
+id,call_sign,vehicle_type,license_plate,status
+1,Foam Tender 1,FOAM_TENDER,B 1234 XX,READY
+2,Ambulance 1,AMBULANCE,B 5678 YY,READY
