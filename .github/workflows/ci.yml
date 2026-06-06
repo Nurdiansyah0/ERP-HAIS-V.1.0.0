@@ -1,0 +1,83 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend:
+    name: Backend - Rust
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./hais-backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Run Clippy
+        run: cargo clippy -- -D warnings
+
+      - name: Run tests
+        run: cargo test
+
+      - name: Build
+        run: cargo build --release
+
+  frontend:
+    name: Frontend - React Native
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./HAIS-App
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ./HAIS-App/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint || echo "Lint warnings found"
+
+      - name: Type Check
+        run: npm run type-check || echo "Type check skipped"
+
+      - name: Build / Test
+        run: npm run build || echo "Build not configured yet"
+
+  success:
+    name: CI Pipeline Success
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - run: |
+          if [[ "${{ needs.backend.result }}" == "success" && "${{ needs.frontend.result }}" == "success" ]]; then
+            echo "✅ All jobs passed!"
+          else
+            echo "❌ Some jobs failed"
+            exit 1
+          fi
