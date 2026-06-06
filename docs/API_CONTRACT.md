@@ -94,7 +94,8 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 | username | VARCHAR(100)| UNIQUE | |
 | password_hash | VARCHAR(255)| NOT NULL | Hashed by Argon2id |
 | role | VARCHAR(50) | NOT NULL | e.g., 'superuser', 'staff', 'manager' |
-| created_at | TIMESTAMPS | DEFAULT NOW()| |
+| created_at | TIMESTAMPTZ | DEFAULT NOW()| |
+| deleted_at | TIMESTAMPTZ | NULL | Soft delete timestamp (NULL = active) |
 
 ### 5.2. Table: `personnels` (Business Layer)
 | Kolom | Tipe Data | Constraint | Keterangan |
@@ -104,6 +105,7 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 | identity_num | VARCHAR(50) | UNIQUE | NIK / Nomor Pegawai |
 | rank | VARCHAR(50) | | Pangkat / Jabatan ARFF |
 | status | VARCHAR(50) | DEFAULT 'ACTIVE' | ACTIVE, LEAVE, SICK, OFF |
+| deleted_at | TIMESTAMPTZ | NULL | Soft delete timestamp (NULL = active) |
 
 ### 5.3. Table: `vehicles`
 | Kolom | Tipe Data | Constraint | Keterangan |
@@ -113,6 +115,7 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 | vehicle_type | VARCHAR(50) | | e.g., 'FOAM_TENDER', 'AMBULANCE' |
 | license_plate | VARCHAR(50) | | |
 | status | VARCHAR(50) | DEFAULT 'READY'| READY, MAINTENANCE, OUT_OF_SERVICE |
+| deleted_at | TIMESTAMPTZ | NULL | Soft delete timestamp (NULL = active) |
 
 ### 5.4. Table: `checklist_templates` (Master Data Ceklis)
 | Kolom | Tipe Data | Constraint | Keterangan |
@@ -120,6 +123,7 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 | id | UUID | PRIMARY KEY | |
 | vehicle_type | VARCHAR(50) | | Template ini untuk jenis mobil apa |
 | name | VARCHAR(255)| | e.g., 'Cek Harian Foam Tender' |
+| deleted_at | TIMESTAMPTZ | NULL | Soft delete timestamp (NULL = active) |
 
 ### 5.5. Table: `checklist_items` (Butir Ceklis)
 | Kolom | Tipe Data | Constraint | Keterangan |
@@ -129,6 +133,7 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 | category | VARCHAR(100)| | e.g., 'Engine', 'Pump', 'Cabin' |
 | description | VARCHAR(255)| | e.g., 'Cek Level Oli Mesin' |
 | is_critical | BOOLEAN | DEFAULT FALSE | Jika gagal, mobil tidak boleh jalan |
+| deleted_at | TIMESTAMPTZ | NULL | Soft delete timestamp (NULL = active) |
 
 ### 5.6. Table: `inspections` (Header Laporan Inspeksi)
 | Kolom | Tipe Data | Constraint | Keterangan |
@@ -139,7 +144,8 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 | template_id | UUID | FK -> checklist_templates(id)| Template yang dipakai |
 | result | VARCHAR(20) | NOT NULL | PASSED, FAILED, WARNING |
 | notes | TEXT | | Catatan temuan umum |
-| inspected_at | TIMESTAMPS | DEFAULT NOW()| Waktu inspeksi selesai |
+| inspected_at | TIMESTAMPTZ | DEFAULT NOW()| Waktu inspeksi selesai |
+| deleted_at | TIMESTAMPTZ | NULL | Soft delete timestamp (NULL = active) |
 
 ### 5.7. Table: `inspection_results` (Detail Hasil Ceklis)
 | Kolom | Tipe Data | Constraint | Keterangan |
@@ -150,6 +156,7 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 | is_ok | BOOLEAN | NOT NULL | Lulus / Tidak Lulus |
 | actual_value | VARCHAR(255)| | Nilai aktual (misal tekanan bar) |
 | notes | TEXT | | Catatan spesifik jika rusak |
+| deleted_at | TIMESTAMPTZ | NULL | Soft delete timestamp (NULL = active) |
 
 ### 5.8. Table: `audit_logs` (Cybersecurity Requirement)
 | Kolom | Tipe Data | Constraint | Keterangan |
@@ -160,7 +167,8 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 | entity_type | VARCHAR(50) | NOT NULL | e.g., 'vehicles' |
 | entity_id | UUID | NOT NULL | ID data yang diubah |
 | ip_address | VARCHAR(50) | | IP Address asal request |
-| timestamp | TIMESTAMPS | DEFAULT NOW()| |
+| timestamp | TIMESTAMPTZ | DEFAULT NOW()| |
+| deleted_at | TIMESTAMPTZ | NULL | Soft delete timestamp (NULL = active) |
 
 ---
 
@@ -168,4 +176,4 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 1. **Password Encryption**: Rust wajib mem-parsing password dengan algoritma **Argon2id**.
 2. **Audit Logging**: Semua request berjenis `POST`, `PUT`, `DELETE`, dan `PATCH` wajib tercatat di dalam `audit_logs`. Endpoint GET tidak perlu (terkecuali untuk data super sensitif).
 3. **Database Pagination**: Endpoint GET List (seperti `/v1/inspections`) wajib mendukung `?page=1&limit=20` agar tidak membebani memori (FlatList Optimization di React Native).
-4. **Soft Delete**: Data kritikal tidak diizinkan menggunakan perintah SQL `DELETE`. Gunakan kolom `deleted_at TIMESTAMPS` (*Soft Delete*).
+4. **Soft Delete**: Data kritikal tidak diizinkan menggunakan perintah SQL `DELETE`. Gunakan kolom `deleted_at TIMESTAMPTZ` (*Soft Delete*). Added to all tables for consistency.
