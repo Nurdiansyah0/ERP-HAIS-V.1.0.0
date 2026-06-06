@@ -1,19 +1,41 @@
 # Contributing to HAIS ERP
 
-Terima kasih telah berminat berkontribusi!
+Thank you for your interest in contributing to HAIS ERP!
 
-## Development Workflow
+## Branching Strategy
 
-1. Fork repo ini
-2. Buat branch feature: `git checkout -b feature/nama-fitur`
-3. Commit dengan Conventional Commits
-4. Push & buat Pull Request
+We follow **GitHub Flow**:
 
-## Commit Message
+- `main` branch is always production-ready
+- Create short-lived feature branches from `main`
+- Naming convention:
+  - `feature/login-ui`
+  - `fix/invoice-calculation`
+  - `hotfix/critical-payment-bug`
 
-Gunakan [Conventional Commits](https://www.conventionalcommits.org/):
+## Commit Messages
 
-`feat: tambah fitur baru`
-`fix: perbaiki bug`
-`docs: update dokumentasi`
+We use **Conventional Commits** for better changelog and versioning:
 
+```bash
+git commit -m "feat: add multi-level approval workflow"
+git commit -m "fix: correct stock calculation in inventory module"
+git commit -m "docs: update API contract"
+```
+
+## Pull Requests
+
+1. Keep PRs small (< 400 lines ideal)
+2. Add clear description + screenshots for UI changes
+3. Link related issues if any
+4. All CI checks must pass
+5. Request review from team members
+
+## Code Style
+
+- Backend (Rust): Follow `cargo fmt` and `cargo clippy`
+- Frontend (React Native): Follow project ESLint + TypeScript strict mode
+
+## Questions?
+
+Open an issue or ask in team chat.

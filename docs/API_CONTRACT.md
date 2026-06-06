@@ -94,7 +94,7 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 | username | VARCHAR(100)| UNIQUE | |
 | password_hash | VARCHAR(255)| NOT NULL | Hashed by Argon2id |
 | role | VARCHAR(50) | NOT NULL | e.g., 'superuser', 'staff', 'manager' |
-| created_at | TIMESTAMPTZ | DEFAULT NOW()| |
+| created_at | TIMESTAMPS | DEFAULT NOW()| |
 
 ### 5.2. Table: `personnels` (Business Layer)
 | Kolom | Tipe Data | Constraint | Keterangan |
@@ -139,7 +139,7 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 | template_id | UUID | FK -> checklist_templates(id)| Template yang dipakai |
 | result | VARCHAR(20) | NOT NULL | PASSED, FAILED, WARNING |
 | notes | TEXT | | Catatan temuan umum |
-| inspected_at | TIMESTAMPTZ | DEFAULT NOW()| Waktu inspeksi selesai |
+| inspected_at | TIMESTAMPS | DEFAULT NOW()| Waktu inspeksi selesai |
 
 ### 5.7. Table: `inspection_results` (Detail Hasil Ceklis)
 | Kolom | Tipe Data | Constraint | Keterangan |
@@ -160,7 +160,7 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 | entity_type | VARCHAR(50) | NOT NULL | e.g., 'vehicles' |
 | entity_id | UUID | NOT NULL | ID data yang diubah |
 | ip_address | VARCHAR(50) | | IP Address asal request |
-| timestamp | TIMESTAMPTZ | DEFAULT NOW()| |
+| timestamp | TIMESTAMPS | DEFAULT NOW()| |
 
 ---
 
@@ -168,4 +168,4 @@ Mengacu pada arsitektur DDD, berikut adalah *Entity-Relationship* mendasar yang 
 1. **Password Encryption**: Rust wajib mem-parsing password dengan algoritma **Argon2id**.
 2. **Audit Logging**: Semua request berjenis `POST`, `PUT`, `DELETE`, dan `PATCH` wajib tercatat di dalam `audit_logs`. Endpoint GET tidak perlu (terkecuali untuk data super sensitif).
 3. **Database Pagination**: Endpoint GET List (seperti `/v1/inspections`) wajib mendukung `?page=1&limit=20` agar tidak membebani memori (FlatList Optimization di React Native).
-4. **Soft Delete**: Data kritikal tidak diizinkan menggunakan perintah SQL `DELETE`. Gunakan kolom `deleted_at TIMESTAMPTZ` (*Soft Delete*).
+4. **Soft Delete**: Data kritikal tidak diizinkan menggunakan perintah SQL `DELETE`. Gunakan kolom `deleted_at TIMESTAMPS` (*Soft Delete*).
